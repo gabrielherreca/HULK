@@ -6,7 +6,7 @@ using System.Data;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-
+using System.Xml;
 
 public class AnalizadorSintáctico
 {
@@ -30,20 +30,60 @@ public class AnalizadorSintáctico
         }
     }
 
+    public static Entorno entorno = new Entorno();
     public AST Analizar()
     
-{   
+    
+{    if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "if")
+    {  
+        return AnalizarIfElse();
+    }    
+
+     if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "let")
+       {
+        return AnalizarLetIn();
+       }
+      if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "print")
+    {
+             return AnalizarPrint();
+    }           
+
      if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "function")
     {  
         return AnalizarFuncionInline();
     }
+   
+
+    if (tokenActual.Tipo == TipoToken.Cadena)
+    {
+    AST nodo = new Cadena(tokenActual.Valor);
+     siguienteToken();
+            return nodo;
+    
+    }
+    if(tokenActual.Tipo == TipoToken.Identificador)
+    {   
+        if ((FuncionDefinida(tokenActual.Valor) == true))
+        {   Console.WriteLine("hola");
+            return AnalizarLlamadaFuncion();
+        }
+
+        return AnalizarIdentificador();
+    }
+    if(tokenActual.Tipo == TipoToken.DelimitadorAbierto)
+    {   siguienteToken();
+        return Analizar();
+    }
+    
+    
 
     AST result = AnalizarExpresion();
 
     while (tokenActual != null && tokenActual.Tipo == TipoToken.DelimitadorAbierto)
     {
         siguienteToken();
-        AST derecho = AnalizarExpresion();
+        AST derecho = Analizar();
+     
 
         if (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
             throw new Exception("Error: Se esperaba un paréntesis cerrado.");
@@ -61,9 +101,185 @@ public class AnalizadorSintáctico
     return result;
 }
 
+public AST AnalizarIfElse() {
+   
+   siguienteToken();
+
+    
+    siguienteToken(); 
+    AST condicion = Analizar();
+    siguienteToken(); 
+
+    
+    AST expresionIf = Analizar();
+
+   
+    AST expresionElse = null;
+    if (tokenActual.Valor == "else") 
+    {
+        siguienteToken();
+        expresionElse = Analizar();
+    }
+    else
+    {
+        throw new Exception("Error: Se esperaba la condicion Else.");
+    }
+
+  
+    return new IfElseExpression(condicion, expresionIf, expresionElse);
+}
+
+
+public bool FuncionDefinida(string nombre)
+{   var funcion = entorno.BuscarFuncion(nombre);
+    if (funcion == null)
+    {
+        return false;
+    }
+    else
+    {
+       return true;
+    }
+}
+
+private AST AnalizarLlamadaFuncion()
+{
+    string nombreFuncion = tokenActual.Valor;
+    siguienteToken();
+
+    if (tokenActual.Tipo != TipoToken.DelimitadorAbierto)
+        throw new Exception("Error: Se esperaba un paréntesis abierto.");
+
+    siguienteToken();
+
+    List<AST> argumentos = new List<AST>();
+    while (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
+    {
+        AST argumento = AnalizarExpresion();
+        argumentos.Add(argumento);
+
+        if (tokenActual.Tipo == TipoToken.Coma)
+            siguienteToken();
+        else if (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
+            throw new Exception("Error: Se esperaba una coma o un paréntesis cerrado.");
+    }
+
+    siguienteToken();
+
+    return new LlamadaFuncion(nombreFuncion, argumentos);
+}
+
+public AST AnalizarIdentificador()
+{
+   
+    AST nodo = new Identificador(tokenActual.Valor);
+
+    
+    siguienteToken();
+
+    
+    if (tokenActual != null && tokenActual.Tipo == TipoToken.Concatenador)
+    {
+       
+        siguienteToken();
+
+        
+        AST derecho = Analizar();
+
+       
+        nodo = new Concatenacion(nodo, derecho);
+       
+
+    }
+    
+    
+
+    return nodo;
+}
+
+public AST AnalizarLetIn()
+{
+    
+
+    siguienteToken();
+
+    
+    List<Variable> variables = new List<Variable>();
+    do
+    {
+        
+        if (tokenActual.Tipo != TipoToken.Identificador)
+            throw new Exception("Error: Se esperaba un identificador.");
+
+        string nombre = tokenActual.Valor;
+
+        siguienteToken();
+
+        
+        if (tokenActual.Tipo != TipoToken.OperadorAsignación)
+            throw new Exception("Error: Se esperaba '='.");
+
+        siguienteToken();
+
+       
+        AST valor = Analizar();
+
+      
+        Entorno ent = new Entorno();
+        variables.Add(new Variable(nombre, valor.Evaluar(ent)));
+
+      
+        if (tokenActual.Tipo == TipoToken.Coma)
+            siguienteToken();
+    }
+    while ( tokenActual.Valor != "in");
+
+    siguienteToken();
+
+    
+    AST cuerpo = Analizar();
+
+   
+    Entorno entornoLetIn = new Entorno();
+    foreach (Variable variable in variables)
+        entornoLetIn.DefinirVariable(variable);
+
+    
+    return new LetInExpression(entornoLetIn, cuerpo);
+}
+
+
+private AST AnalizarPrint()
+{
+     siguienteToken();  
+
+   
+    if (tokenActual.Tipo != TipoToken.DelimitadorAbierto)
+        throw new Exception("Error: Se esperaba un paréntesis abierto.");
+
+    siguienteToken();  
+
+   
+    AST expresion = Analizar();
+    
+
+
+    
+    if (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
+       
+          throw new Exception($"Error: Token inesperado '{tokenActual.Valor}'.");
+    siguienteToken();  
+
+   
+    AST nodo = new PrintExpression(expresion);
+    return nodo;
+   
+    }
+
+
 private AST AnalizarFuncionInline()
 {
-    siguienteToken(); // Saltamos la palabra clave 'function'
+    siguienteToken(); 
 
     if (tokenActual.Tipo != TipoToken.Identificador)
         throw new Exception("Error: Se esperaba un identificador.");
@@ -165,6 +381,8 @@ private AST AnalizarExponente()
         siguienteToken();
         return nodo;
     }
+
+    
     
     else if (tokenActual.Tipo == TipoToken.DelimitadorAbierto)
     {
