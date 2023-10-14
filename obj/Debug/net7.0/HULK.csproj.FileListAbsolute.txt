@@ -1,0 +1,30 @@
+C:\CC22\HULK\bin\Debug\net7.0\HULK.exe
+C:\CC22\HULK\bin\Debug\net7.0\HULK.deps.json
+C:\CC22\HULK\bin\Debug\net7.0\HULK.runtimeconfig.json
+C:\CC22\HULK\bin\Debug\net7.0\HULK.dll
+C:\CC22\HULK\bin\Debug\net7.0\HULK.pdb
+C:\CC22\HULK\obj\Debug\net7.0\HULK.csproj.AssemblyReference.cache
+C:\CC22\HULK\obj\Debug\net7.0\HULK.GeneratedMSBuildEditorConfig.editorconfig
+C:\CC22\HULK\obj\Debug\net7.0\HULK.AssemblyInfoInputs.cache
+C:\CC22\HULK\obj\Debug\net7.0\HULK.AssemblyInfo.cs
+C:\CC22\HULK\obj\Debug\net7.0\HULK.csproj.CoreCompileInputs.cache
+C:\CC22\HULK\obj\Debug\net7.0\HULK.dll
+C:\CC22\HULK\obj\Debug\net7.0\refint\HULK.dll
+C:\CC22\HULK\obj\Debug\net7.0\HULK.pdb
+C:\CC22\HULK\obj\Debug\net7.0\HULK.genruntimeconfig.cache
+C:\CC22\HULK\obj\Debug\net7.0\ref\HULK.dll
+C:\CC22\HULK entrega\HULK\bin\Debug\net7.0\HULK.exe
+C:\CC22\HULK entrega\HULK\bin\Debug\net7.0\HULK.deps.json
+C:\CC22\HULK entrega\HULK\bin\Debug\net7.0\HULK.runtimeconfig.json
+C:\CC22\HULK entrega\HULK\bin\Debug\net7.0\HULK.dll
+C:\CC22\HULK entrega\HULK\bin\Debug\net7.0\HULK.pdb
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.csproj.AssemblyReference.cache
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.GeneratedMSBuildEditorConfig.editorconfig
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.AssemblyInfoInputs.cache
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.AssemblyInfo.cs
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.csproj.CoreCompileInputs.cache
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.dll
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\refint\HULK.dll
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.pdb
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\HULK.genruntimeconfig.cache
+C:\CC22\HULK entrega\HULK\obj\Debug\net7.0\ref\HULK.dll
