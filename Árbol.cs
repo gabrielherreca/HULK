@@ -8,6 +8,7 @@ using System.Dynamic;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
+
 public enum TipoToken
 {
     PalabraReservada,
@@ -28,6 +29,10 @@ public enum TipoToken
     Unknown,
 
     Flecha,
+
+    Cadena,
+
+    Concatenador,
 
    
 }
@@ -56,6 +61,7 @@ public enum TipoToken
 } 
 
 
+
  
   
 public abstract class AST
@@ -75,7 +81,7 @@ public class ValorNumerico : AST
 
     public override object Evaluar(Entorno entorno)
     {
-       
+        
         return Valor;
     }
 
@@ -101,7 +107,7 @@ public class OperacionAritmetica : AST
     double valorIzquierdo = Convert.ToDouble(OperandoIzquierdo.Evaluar(entorno));
     double valorDerecho = Convert.ToDouble(OperandoDerecho.Evaluar(entorno));
 
-    
+   
     switch (Operador)
     {
         case "+":
@@ -134,6 +140,8 @@ public class OperacionAritmetica : AST
 
 }
 
+
+
 public class Negacion : AST
 {
     private AST subexpresion;
@@ -145,28 +153,45 @@ public class Negacion : AST
 
     public override object Evaluar(Entorno entorno)
 {
-    // Primero evaluamos la subexpresión.
+    
     object valor = subexpresion.Evaluar(entorno);
 
-    // Luego, comprobamos que el valor sea un número.
+    
     if (valor is int)
     {
-        // Si es un int, lo convertimos a double y luego lo negamos.
+       
         return - Convert.ToDouble(valor);
     }
     else if (valor is double)
     {
-        // Si ya es un double, simplemente lo negamos.
+        
         return - (double)valor;
     }
     else
     {
-        // Si no es un número, lanzamos una excepción.
+      
         throw new Exception("Error: se intentó negar un valor no numérico.");
     }
 }
 
 }
+
+public class Cadena : AST
+{
+    public string Valor { get; }
+
+    public Cadena(string valor)
+    {
+        Valor = valor;
+    }
+
+    public override object Evaluar(Entorno entorno)
+    {
+        // Para una cadena, simplemente devolvemos su valor
+        return Valor;
+    }
+}
+
 
 
 
@@ -182,10 +207,10 @@ public class FuncionLog : AST
 
     public override object Evaluar(Entorno entorno)
     {
-        // Primero, evaluamos el argumento.
+        
         double valorArgumento = Convert.ToDouble(Argumento.Evaluar(entorno));
 
-        // Luego, calculamos y devolvemos el logaritmo del argumento.
+       
         return Math.Log(valorArgumento);
     }
 }
@@ -213,11 +238,11 @@ public class FuncionLog : AST
 
     public override object Evaluar(Entorno entorno)
 {
-    // Primero, evaluamos los operandos.
+   
     var valorIzquierdo = OperandoIzquierdo.Evaluar(entorno);
     var valorDerecho = OperandoDerecho.Evaluar(entorno);
 
-    // Luego, realizamos la operación lógica.
+   
     switch (Operador)
     {
         case "==":
@@ -249,19 +274,22 @@ public class Identificador : AST
     }
     public override object Evaluar(Entorno entorno)
 {
-    // Buscamos el valor actual del identificador en el entorno.
+   
     var variable = entorno.BuscarVariable(Nombre);
     if (variable != null)
     {
-        // Si la variable existe, devolvemos su valor.
+        
         return variable.Value;
     }
     else
     {
-        // Si la variable no existe, lanzamos una excepción.
+       
         throw new Exception($"Error: Variable no definida '{Nombre}'.");
     }
 }
+
+
+
 
 }
 
@@ -278,41 +306,64 @@ public class DeclaracionVariable : AST
 
     public override object Evaluar(Entorno entorno)
 {
-    // Primero, evaluamos el valor inicial de la variable.
+    
     var valor = ValorInicial.Evaluar(entorno);
 
-    // Luego, definimos una nueva variable en el entorno con el nombre y el valor inicial.
+    
     entorno.DefinirVariable(new Variable(Nombre, valor));
 
-    // La declaración de una variable no tiene un valor por sí misma, por lo que devolvemos null.
+   
     return null;
 }
 
     
 }
 
-public class LetInExpression : AST
+public class Concatenacion : AST
 {
-    public List<DeclaracionVariable> Declaraciones { get; }
-    public AST Cuerpo { get; }
+    public AST Izquierdo { get; }
+    public AST Derecho { get; }
 
-    public LetInExpression(List<DeclaracionVariable> declaraciones, AST cuerpo)
+    public Concatenacion(AST izquierdo, AST derecho)
     {
-        Declaraciones = declaraciones;
-        Cuerpo = cuerpo;
+        Izquierdo = izquierdo;
+        Derecho = derecho;
     }
 
     public override object Evaluar(Entorno entorno)
-{
-    // Primero, definimos las nuevas variables en el entorno.
-    foreach (var declaracion in Declaraciones)
     {
-        declaracion.Evaluar(entorno);
+        
+        object valorIzquierdo = Izquierdo.Evaluar(entorno);
+        object valorDerecho = Derecho.Evaluar(entorno);
+
+        
+        return valorIzquierdo.ToString() + " " + valorDerecho.ToString();
+    }
+}
+public class LetInExpression : AST
+{
+    public Entorno Entorno { get; }
+    public AST Cuerpo { get; }
+
+    public LetInExpression(Entorno entorno, AST cuerpo)
+    {
+        Entorno = entorno;
+        Cuerpo = cuerpo;
     }
 
-    // Luego, evaluamos y devolvemos el resultado del cuerpo.
-    return Cuerpo.Evaluar(entorno);
+   public override object Evaluar(Entorno entorno)
+{
+    // Añade las variables del bloque let-in al entorno actual
+    foreach (var variable in this.Entorno.variables)
+    {
+        entorno.DefinirVariable(variable.Value);
+    }
+
+    // Evalúa el cuerpo del bloque let-in en el entorno actual
+    return this.Cuerpo.Evaluar(entorno);
 }
+
+
 
     
 }
@@ -335,10 +386,10 @@ public class IfElseExpression : AST
 
     public override object Evaluar(Entorno entorno)
 {
-    // Primero, evaluamos la condición.
+  
     bool condicion = Convert.ToBoolean(Condicion.Evaluar(entorno));
 
-    // Luego, en función del valor de la condición, evaluamos y devolvemos el resultado de ExpresionIf o ExpresionElse.
+   
     if (condicion)
     {
         return ExpresionIf.Evaluar(entorno);
@@ -362,7 +413,7 @@ public class PrintExpression : AST
 
     public override object Evaluar(Entorno entorno)
 {
-    // Evaluamos la expresión y la convertimos en una cadena.
+    
     var valor = Expresion.Evaluar(entorno);
     return valor.ToString();
 }
@@ -382,10 +433,10 @@ public class FuncionInline : AST
     }
     public override object Evaluar(Entorno entorno)
 {
-    // Definimos una nueva función en el entorno.
+   
     entorno.DefinirFuncion(this);
 
-    // La definición de una función no tiene un valor por sí misma, por lo que devolvemos null.
+    
     return null;
 }
 
@@ -403,17 +454,16 @@ public class LlamadaFuncion : AST
     }
     public override object Evaluar(Entorno entorno)
 {
-    // Buscamos la definición de la función en el entorno.
     var funcion = entorno.BuscarFuncion(Nombre);
     if (funcion == null)
     {
         throw new Exception($"Error: Función no definida '{Nombre}'.");
     }
 
-    // Creamos un nuevo entorno para la llamada a la función.
+  
     var entornoFuncion = new Entorno();
 
-    // Evaluamos los argumentos y los definimos en el entorno de la función.
+    
     for (int i = 0; i < Argumentos.Count; i++)
     {
         var valor = Argumentos[i].Evaluar(entorno);
@@ -421,7 +471,7 @@ public class LlamadaFuncion : AST
         entornoFuncion.DefinirVariable(variable);
     }
 
-    // Evaluamos el cuerpo de la función en el entorno de la función y devolvemos el resultado.
+  
     return funcion.Cuerpo.Evaluar(entornoFuncion);
 } 
 
@@ -429,7 +479,7 @@ public class LlamadaFuncion : AST
 
 public class Entorno
 {
-    private Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
+    public Dictionary<string, Variable> variables = new Dictionary<string, Variable>();
 
     public void DefinirVariable(Variable variable)
     {
@@ -448,7 +498,7 @@ public class Entorno
         }
     }
 
-    private Dictionary<string, FuncionInline> funciones = new Dictionary<string, FuncionInline>();
+    public Dictionary<string, FuncionInline> funciones = new Dictionary<string, FuncionInline>();
 
     public void DefinirFuncion(FuncionInline funcion)
     {
@@ -491,37 +541,5 @@ public class Variable
         set { this.value = value; }
     }
 }
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
- 
-
-    
-
-
-
-
-
-
-
-
-
 
 
