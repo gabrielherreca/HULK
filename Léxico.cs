@@ -8,6 +8,8 @@ using System.Data;
 using System.Dynamic;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using System.Text;
+
 
 public class AnalizadorLéxico
 {
@@ -77,13 +79,28 @@ public class AnalizadorLéxico
                 indice++;
                 continue;
             }
+if (caracterActual == '"')
+{
+    StringBuilder cadena = new StringBuilder();
+    indice++;  // Avanza al siguiente caracter después de la comilla de apertura
 
-             if ( caracterActual == '"')
-            {
-                tokens.Add(new Token(TipoToken.Comillas, caracterActual.ToString()));
-                indice++;
-                continue;
-            }
+    while (indice < codigoFuente.Length && codigoFuente[indice] != '"')
+    {
+        cadena.Append(codigoFuente[indice]);
+        indice++;
+    }
+
+    if (indice == codigoFuente.Length)
+    {
+        throw new Exception("Error: Se esperaba una comilla de cierre.");
+    }
+
+    indice++;  // Avanza al siguiente caracter después de la comilla de cierre
+
+    tokens.Add(new Token(TipoToken.Cadena, cadena.ToString()));
+    continue;
+}
+
 
              if ( caracterActual == ';' )
             {
@@ -150,6 +167,14 @@ public class AnalizadorLéxico
                      caracterActual == '>' || caracterActual == '<' )
             {
                 tokens.Add(new Token(TipoToken.OperadorLógico, caracterActual.ToString()));
+                indice++;
+                continue; 
+            }
+
+              if 
+                   (  caracterActual == '@' )
+            {
+                tokens.Add(new Token(TipoToken.Concatenador, caracterActual.ToString()));
                 indice++;
                 continue; 
             }
