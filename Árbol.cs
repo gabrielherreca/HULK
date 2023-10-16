@@ -430,6 +430,7 @@ public class FuncionInline : AST
         Nombre = nombre;
         Parametros = parametros;
         Cuerpo = cuerpo;
+        
     }
     public override object Evaluar(Entorno entorno)
 {
@@ -541,5 +542,37 @@ public class Variable
         set { this.value = value; }
     }
 }
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+ 
+
+    
+
+
+
+
+
+
+
+
+
 
 
