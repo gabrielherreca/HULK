@@ -10,9 +10,14 @@ using System.Xml;
 
 public class AnalizadorSintáctico
 {
-    private List<Token> tokens;
+    private  List<Token> tokens;
+    
     private int indice;
     private Token tokenActual;
+     private Token ultimoToken;
+
+
+    private  static List<string> Nombrefunciones = new List<string>();
 
     public AnalizadorSintáctico(List<Token> tokens)
     {
@@ -21,7 +26,15 @@ public class AnalizadorSintáctico
         if (tokens.Count != 0) {
             tokenActual = tokens[0];
         }
+        if (tokens.Count != 0) {
+            ultimoToken = tokens[tokens.Count-1];
+        }
+        
+       
     }
+
+     
+    
 
     public void siguienteToken() {
         if (indice < tokens.Count - 1) {
@@ -34,7 +47,13 @@ public class AnalizadorSintáctico
     public AST Analizar()
     
     
-{    if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "if")
+{   
+    if (ultimoToken.Tipo != TipoToken.PuntoComa)
+    {
+          throw new Exception($"Error: Falta cerrar la expresion con : ';'.");
+    }
+
+     if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "if")
     {  
         return AnalizarIfElse();
     }    
@@ -61,19 +80,23 @@ public class AnalizadorSintáctico
             return nodo;
     
     }
-    if(tokenActual.Tipo == TipoToken.Identificador)
-    {   
-        if ((FuncionDefinida(tokenActual.Valor) == true))
-        {   Console.WriteLine("hola");
+
+    
+    
+    if((tokenActual.Tipo == TipoToken.Identificador) && ((FuncionDefinida(tokenActual.Valor))))
+    {    
+        
+        {  
+             
             return AnalizarLlamadaFuncion();
         }
 
-        return AnalizarIdentificador();
+      
     }
-    if(tokenActual.Tipo == TipoToken.DelimitadorAbierto)
+    /*if(tokenActual.Tipo == TipoToken.DelimitadorAbierto)
     {   siguienteToken();
         return Analizar();
-    }
+    }*/
     
     
 
@@ -131,15 +154,13 @@ public AST AnalizarIfElse() {
 
 
 public bool FuncionDefinida(string nombre)
-{   var funcion = entorno.BuscarFuncion(nombre);
-    if (funcion == null)
+{  
+    if (Nombrefunciones.Contains(nombre) )
     {
-        return false;
+        return true;
     }
-    else
-    {
-       return true;
-    }
+    
+    return false;
 }
 
 private AST AnalizarLlamadaFuncion()
@@ -155,7 +176,7 @@ private AST AnalizarLlamadaFuncion()
     List<AST> argumentos = new List<AST>();
     while (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
     {
-        AST argumento = AnalizarExpresion();
+        AST argumento = Analizar();
         argumentos.Add(argumento);
 
         if (tokenActual.Tipo == TipoToken.Coma)
@@ -199,7 +220,7 @@ public AST AnalizarIdentificador()
 
 public AST AnalizarLetIn()
 {
-    
+    Entorno entornoLetIn = new Entorno();
 
     siguienteToken();
 
@@ -225,8 +246,8 @@ public AST AnalizarLetIn()
         AST valor = Analizar();
 
       
-        Entorno ent = new Entorno();
-        variables.Add(new Variable(nombre, valor.Evaluar(ent)));
+       
+        variables.Add(new Variable(nombre, valor.Evaluar(entornoLetIn)));
 
       
         if (tokenActual.Tipo == TipoToken.Coma)
@@ -240,7 +261,7 @@ public AST AnalizarLetIn()
     AST cuerpo = Analizar();
 
    
-    Entorno entornoLetIn = new Entorno();
+    
     foreach (Variable variable in variables)
         entornoLetIn.DefinirVariable(variable);
 
@@ -285,6 +306,7 @@ private AST AnalizarFuncionInline()
         throw new Exception("Error: Se esperaba un identificador.");
 
     string nombreFuncion = tokenActual.Valor;
+    Nombrefunciones.Add(nombreFuncion);
     siguienteToken();
 
     if (tokenActual.Tipo != TipoToken.DelimitadorAbierto)
@@ -314,7 +336,7 @@ private AST AnalizarFuncionInline()
 
     siguienteToken();
 
-    AST cuerpo = AnalizarExpresion();
+    AST cuerpo = Analizar();
 
     return new FuncionInline(nombreFuncion, parametros, cuerpo);
 }
@@ -382,12 +404,36 @@ private AST AnalizarExponente()
         return nodo;
     }
 
+    if (tokenActual.Tipo == TipoToken.Identificador)
+    {    AST nodo = new Identificador(tokenActual.Valor); 
+        siguienteToken();
+        
+        
+         if (tokenActual != null && tokenActual.Tipo == TipoToken.Concatenador)
+    {
+       
+        siguienteToken();
+
+        
+        AST derecho = Analizar();
+
+       
+        nodo = new Concatenacion(nodo, derecho);
+       
+
+    }
+
+    return nodo;
+    }
+
+    
+    
     
     
     else if (tokenActual.Tipo == TipoToken.DelimitadorAbierto)
     {
         siguienteToken();
-        AST nodo = AnalizarExpresion();
+        AST nodo = Analizar();
         
         if (tokenActual.Tipo != TipoToken.DelimitadorCerrado)
             throw new Exception("Error: Se esperaba un paréntesis cerrado.");
@@ -407,6 +453,16 @@ private AST AnalizarExponente()
             siguienteToken();
             return nodo;
         }
+
+         if (tokenActual.Tipo == TipoToken.Identificador)
+    {   
+        
+        AST nodo = new Identificador(tokenActual.Valor); 
+        AST negacion = new Negacion(nodo);
+        siguienteToken();
+        return negacion;
+    }
+
         
         else if (tokenActual.Tipo == TipoToken.DelimitadorAbierto)
         {
@@ -427,6 +483,7 @@ private AST AnalizarExponente()
             throw new Exception("Error: Se esperaba un número o una expresión entre paréntesis después del signo '-'.");
         }
     }
+   
     
     else
     {
