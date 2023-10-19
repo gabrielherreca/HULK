@@ -83,16 +83,7 @@ public class AnalizadorSintáctico
 
     
     
-    if((tokenActual.Tipo == TipoToken.Identificador) && ((FuncionDefinida(tokenActual.Valor))))
-    {    
-        
-        {  
-             
-            return AnalizarLlamadaFuncion();
-        }
-
-      
-    }
+    
     /*if(tokenActual.Tipo == TipoToken.DelimitadorAbierto)
     {   siguienteToken();
         return Analizar();
@@ -185,7 +176,7 @@ private AST AnalizarLlamadaFuncion()
             throw new Exception("Error: Se esperaba una coma o un paréntesis cerrado.");
     }
 
-    siguienteToken();
+   
 
     return new LlamadaFuncion(nombreFuncion, argumentos);
 }
@@ -196,7 +187,7 @@ public AST AnalizarIdentificador()
     AST nodo = new Identificador(tokenActual.Valor);
 
     
-    siguienteToken();
+   
 
     
     if (tokenActual != null && tokenActual.Tipo == TipoToken.Concatenador)
@@ -404,8 +395,21 @@ private AST AnalizarExponente()
         return nodo;
     }
 
+    if((tokenActual.Tipo == TipoToken.Identificador) && ((FuncionDefinida(tokenActual.Valor))))
+    {    
+        
+        {  
+             
+           AST nodo = AnalizarLlamadaFuncion();
+            siguienteToken();
+            return nodo;
+        }
+
+      
+    }
+
     if (tokenActual.Tipo == TipoToken.Identificador)
-    {    AST nodo = new Identificador(tokenActual.Valor); 
+    {    AST nodo = AnalizarIdentificador(); 
         siguienteToken();
         
         
