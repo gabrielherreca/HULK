@@ -453,30 +453,39 @@ public class LlamadaFuncion : AST
         Nombre = nombre;
         Argumentos = argumentos;
     }
+
     public override object Evaluar(Entorno entorno)
-{
-    var funcion = entorno.BuscarFuncion(Nombre);
-    if (funcion == null)
     {
-        throw new Exception($"Error: Función no definida '{Nombre}'.");
+        var funcion = entorno.BuscarFuncion(Nombre);
+
+        if (funcion == null)
+        {
+            throw new Exception($"Error: Función no definida '{Nombre}'.");
+        }
+
+        var entornoFuncion = new Entorno(); 
+
+        
+        foreach (var variable in entorno.variables)
+        {
+            entornoFuncion.DefinirVariable(variable.Value);
+        }
+        foreach (var funcionInline in entorno.funciones)
+        {
+            entornoFuncion.DefinirFuncion(funcion);
+        }
+
+        for (int i = 0; i < Argumentos.Count; i++)
+        {
+            var valor = Argumentos[i].Evaluar(entorno); 
+            var variable = new Variable(funcion.Parametros[i], valor);
+            entornoFuncion.DefinirVariable(variable);
+        }
+
+        return funcion.Cuerpo.Evaluar(entornoFuncion);
     }
+}
 
-  
-    var entornoFuncion = new Entorno();
-
-    
-    for (int i = 0; i < Argumentos.Count; i++)
-    {
-        var valor = Argumentos[i].Evaluar(entorno);
-        var variable = new Variable(funcion.Parametros[i], valor);
-        entornoFuncion.DefinirVariable(variable);
-    }
-
-  
-    return funcion.Cuerpo.Evaluar(entornoFuncion);
-} 
-
-} 
 
 public class Entorno
 {
