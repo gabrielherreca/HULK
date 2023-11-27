@@ -26,7 +26,7 @@ public enum TipoToken
     PuntoComa,
     Coma,
 
-    Unknown,
+    Desconocido,
 
     Flecha,
 
@@ -72,9 +72,9 @@ public abstract class AST
 
 public class ValorNumerico : AST
 {
-    public int Valor { get; }
+    public double Valor { get; }
 
-    public ValorNumerico(int value)
+    public ValorNumerico(double value)
     {
         Valor = value;
     }
@@ -198,9 +198,31 @@ public class Cadena : AST
 
 public class FuncionLog : AST
 {
+    public AST BaseLog { get; }
+    public AST ArgumentoLog { get; }
+
+    public FuncionLog(AST baseLog, AST argumentoLog)
+    {
+        BaseLog = baseLog;
+        ArgumentoLog = argumentoLog;
+    }
+
+    public override object Evaluar(Entorno entorno)
+    {
+         double valorBase = Convert.ToDouble(BaseLog.Evaluar(entorno));
+        double valorArgumento = Convert.ToDouble(ArgumentoLog.Evaluar(entorno));
+       
+
+       
+        return Math.Log(valorBase,valorArgumento);
+    }
+}
+
+public class FuncionSin : AST
+{
     public AST Argumento { get; }
 
-    public FuncionLog(AST argumento)
+    public FuncionSin(AST argumento)
     {
         Argumento = argumento;
     }
@@ -211,9 +233,30 @@ public class FuncionLog : AST
         double valorArgumento = Convert.ToDouble(Argumento.Evaluar(entorno));
 
        
-        return Math.Log(valorArgumento);
+        return Math.Sin(valorArgumento);
     }
 }
+public class FuncionCos : AST
+{
+    public AST Argumento { get; }
+
+    public FuncionCos(AST argumento)
+    {
+        Argumento = argumento;
+    }
+
+    public override object Evaluar(Entorno entorno)
+    {
+        
+        double valorArgumento = Convert.ToDouble(Argumento.Evaluar(entorno));
+
+       
+        return Math.Cos(valorArgumento);
+    }
+}
+
+
+
 
 
 
@@ -353,13 +396,13 @@ public class LetInExpression : AST
 
    public override object Evaluar(Entorno entorno)
 {
-    // Añade las variables del bloque let-in al entorno actual
+    
     foreach (var variable in this.Entorno.variables)
     {
         entorno.DefinirVariable(variable.Value);
     }
 
-    // Evalúa el cuerpo del bloque let-in en el entorno actual
+  
     return this.Cuerpo.Evaluar(entorno);
 }
 
@@ -530,8 +573,8 @@ public class Entorno
 
 public class Variable
 {
-    private string name;
-    private object value;
+    private string name; 
+    private object value ;
 
     public Variable(string name, object value)
     {
