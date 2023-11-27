@@ -15,22 +15,30 @@ public class AnalizadorLéxico
 {
         string codigoFuente;
     int indice;
-    private List<string> diagnostics = new List<string>();
     
      Dictionary <string, TipoToken> palabrasReservadas = new Dictionary<string, TipoToken>
         {
             { "print", TipoToken.PalabraReservada },
-            { "log", TipoToken.PalabraReservada },
             { "function", TipoToken.PalabraReservada },
             { "let", TipoToken.PalabraReservada },
             { "in", TipoToken.PalabraReservada },
             { "if", TipoToken.PalabraReservada },
             { "else", TipoToken.PalabraReservada }
-            // Agrega las demás palabras reservadas del lenguaje HULK
+            
         };
+
+   Dictionary<string, TipoToken> Math = new Dictionary<string, TipoToken>
+        {
+            { "sin", TipoToken.Math},
+            { "cos", TipoToken.Math},
+            { "log", TipoToken.Math},
+            { "PI", TipoToken.Math},
+
+            
+        };    
    
-    /* Dictionary<string, TipoToken> Math;*/
-     Dictionary<string, TipoToken> palarasReservadas;
+  
+    
 
     public AnalizadorLéxico(string codigoFuente)
     {
@@ -40,12 +48,7 @@ public class AnalizadorLéxico
 
       
        
-      /*  Math = new Dictionary<string, TipoToken>
-        {
-            { "sin", TipoToken.Math},
-            { "cos", TipoToken.Math},
-            { "tan", TipoToken.Math},
-        };*/
+      
     }
 
     
@@ -59,14 +62,14 @@ public class AnalizadorLéxico
             char caracterActual = codigoFuente[indice];
             string _caracterActual = codigoFuente[indice].ToString();
 
-            // Omitir espacios en blanco y caracteres de nueva línea
+           
             if (caracterActual == ' ' || caracterActual == '\n' || caracterActual == '\r')
             {
                 indice++;
                 continue;
             }
             
-            // Detectar delimitadores
+           
             if (caracterActual == '('  )
             {
                 tokens.Add(new Token(TipoToken.DelimitadorAbierto, caracterActual.ToString()));
@@ -82,7 +85,7 @@ public class AnalizadorLéxico
 if (caracterActual == '"')
 {
     StringBuilder cadena = new StringBuilder();
-    indice++;  // Avanza al siguiente caracter después de la comilla de apertura
+    indice++;  
 
     while (indice < codigoFuente.Length && codigoFuente[indice] != '"')
     {
@@ -95,7 +98,7 @@ if (caracterActual == '"')
         throw new Exception("Error: Se esperaba una comilla de cierre.");
     }
 
-    indice++;  // Avanza al siguiente caracter después de la comilla de cierre
+    indice++; 
 
     tokens.Add(new Token(TipoToken.Cadena, cadena.ToString()));
     continue;
@@ -115,7 +118,7 @@ if (caracterActual == '"')
                 continue;
             }
 
-            // Detectar números
+           
             if (char.IsDigit(caracterActual))
             {
                 string numero = "";
@@ -128,7 +131,7 @@ if (caracterActual == '"')
                 continue;
             }
 
-            // Detectar palabras reservadas o identificadores
+          
             if (char.IsLetter(caracterActual) || caracterActual == '_')
             {
                 string palabra = "";
@@ -142,10 +145,10 @@ if (caracterActual == '"')
                 {
                     tokens.Add(new Token(palabrasReservadas[palabra], palabra));
                 }
-               /* else if (Math.ContainsKey(palabra))
+                else if (Math.ContainsKey(palabra))
                 {
                     tokens.Add(new Token(Math[palabra], palabra));
-                }/*/
+                }
                 else
                 {
                     tokens.Add(new Token(TipoToken.Identificador, palabra));
@@ -153,7 +156,7 @@ if (caracterActual == '"')
                 continue;
             }
 
-            // Detectar operadores aritméticos
+           
             if (caracterActual == '+' || caracterActual == '-' || caracterActual == '*' 
                 ||caracterActual == '^' || caracterActual == '%'
                 || caracterActual == '/')
@@ -162,7 +165,7 @@ if (caracterActual == '"')
                 indice++;
                 continue; 
             }
-            // Detectar operadores lógicos
+            
              if (
                      caracterActual == '>' || caracterActual == '<' )
             {
@@ -215,17 +218,16 @@ if (caracterActual == '"')
                     }
                     else
                  {
-                     tokens.Add(new Token(TipoToken.Unknown, caracterActual.ToString()));        
-                     // Si no se reconoce el carácter, generar error léxico 
-                    diagnostics.Add("Non nkown char at "+ indice);
-                    indice++;
-                    continue;
+                     tokens.Add(new Token(TipoToken.Desconocido, caracterActual.ToString()));        
+                     
+                    throw new Exception("Caracter desconocido en : "+ indice);
+                    
                 }
             }
-             tokens.Add(new Token(TipoToken.Unknown, caracterActual.ToString()));        
-            // Si no se reconoce el carácter, generar error léxico 
-            diagnostics.Add("Caracter desconocido en : "+ indice);
-            indice++;
+             tokens.Add(new Token(TipoToken.Desconocido, caracterActual.ToString()));        
+           
+            throw new Exception("Caracter desconocido en : "+ indice);
+          
 
             
         
