@@ -1,4 +1,4 @@
-﻿namespace Hulk;
+namespace Hulk;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,13 +9,12 @@ using System.Text.RegularExpressions;
 
 public class Consola
 {
-    private AnalizadorSintáctico analizadorSintáctico;
-    private Entorno entorno;
+    
+    public static Entorno entorno = new Entorno();
 
-    public Consola()
-    {
-        entorno = new Entorno();
-    }
+    
+        
+    
 
     public  void Ejecutar()
     {
