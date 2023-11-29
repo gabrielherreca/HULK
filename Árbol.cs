@@ -187,8 +187,7 @@ public class Cadena : AST
 
     public override object Evaluar(Entorno entorno)
     {
-        // Para una cadena, simplemente devolvemos su valor
-        return Valor;
+       return Valor;
     }
 }
 
