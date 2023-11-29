@@ -63,7 +63,7 @@ public class AnalizadorLéxico
             string _caracterActual = codigoFuente[indice].ToString();
 
            
-            if (caracterActual == ' ' || caracterActual == '\n' || caracterActual == '\r')
+            if (caracterActual == ' ' || caracterActual == '\n')
             {
                 indice++;
                 continue;
