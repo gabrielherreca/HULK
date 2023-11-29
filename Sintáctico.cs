@@ -52,7 +52,19 @@ public class AnalizadorSintáctico
     {
           throw new Exception($"Error: Falta cerrar la expresion con : ';'.");
     }
-
+     if (tokenActual.Tipo == TipoToken.Math && tokenActual.Valor == "sin")
+    {
+             return AnalizarFuncionSin();
+    }  
+    if (tokenActual.Tipo == TipoToken.Math && tokenActual.Valor == "cos")
+    {
+             return AnalizarFuncionCos();
+    }  
+    if (tokenActual.Tipo == TipoToken.Math && tokenActual.Valor == "log")
+    {
+             return AnalizarFuncionLog();
+    } 
+    
      if (tokenActual.Tipo == TipoToken.PalabraReservada && tokenActual.Valor == "if")
     {  
         return AnalizarIfElse();
@@ -441,6 +453,13 @@ private AST AnalizarFactor()
 private AST AnalizarExponente()
 {
     
+    if (tokenActual.Tipo == TipoToken.Math && tokenActual.Valor == "PI")
+    {
+        double valor = Math.PI;
+        AST nodo = new ValorNumerico(valor);
+        siguienteToken();
+        return nodo;
+    }
     if (tokenActual.Tipo == TipoToken.Numero)
     {
         int valor = int.Parse(tokenActual.Valor);
